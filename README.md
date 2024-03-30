@@ -30,7 +30,7 @@ tts.tts_to_file(text="It took me quite a long time to develop a voice, and now t
 ## Suno
 
 [Suno](https://huggingface.co/suno/bark)
-```
+```python
 from transformers import pipeline
 import scipy
 
