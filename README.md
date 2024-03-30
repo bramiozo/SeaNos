@@ -12,6 +12,7 @@ Development of ```Text``` $\rightarrow$ ```Sean Nos``` using existing models.
 
 Download the Irish model
 ```wget https://dl.fbaipublicfiles.com/mms/tts/gle.tar.gz # Irish gle)```
+```wget https://dl.fbaipublicfiles.com/mms/tts/cym.tar.gz # Welsh gle)```
 
 ```pip install TTS ```
 ```python
@@ -25,3 +26,7 @@ tts.tts_to_file(text="It took me quite a long time to develop a voice, and now t
                 speaker_wav="/path/to/target/speaker.wav",
                 language="en")
 ```
+
+Open private models:
+https://huggingface.co/ylacombe/vits_vctk_irish_male
+https://huggingface.co/ylacombe/vits_ljs_irish_male
