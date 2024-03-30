@@ -7,7 +7,7 @@ Development of ```Text``` $\rightarrow$ ```Sean Nos``` using existing models.
 
 ## **TTS with MMS**
 
-[TTS](https://huggingface.co/coqui/XTTS-v2), [MMS](https://github.com/facebookresearch/fairseq/tree/main/examples/mms)
+[TTS](https://huggingface.co/coqui/XTTS-v2), [MMS](https://github.com/facebookresearch/fairseq/tree/main/examples/mms), [MMS coverage](https://dl.fbaipublicfiles.com/mms/misc/language_coverage_mms.html)
 
 
 Download the Irish model
