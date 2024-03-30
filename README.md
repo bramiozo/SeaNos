@@ -27,6 +27,20 @@ tts.tts_to_file(text="It took me quite a long time to develop a voice, and now t
                 language="en")
 ```
 
-Open private models:
+## Suno
+
+[Suno](https://huggingface.co/suno/bark)
+```
+from transformers import pipeline
+import scipy
+
+synthesiser = pipeline("text-to-speech", "suno/bark")
+
+speech = synthesiser("Hello, my dog is cooler than you!", forward_params={"do_sample": True})
+
+scipy.io.wavfile.write("bark_out.wav", rate=speech["sampling_rate"], data=speech["audio"])
+```
+
+## Open private models:
 https://huggingface.co/ylacombe/vits_vctk_irish_male
 https://huggingface.co/ylacombe/vits_ljs_irish_male
