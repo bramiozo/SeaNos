@@ -40,7 +40,26 @@ speech = synthesiser("Hello, my dog is cooler than you!", forward_params={"do_sa
 
 scipy.io.wavfile.write("bark_out.wav", rate=speech["sampling_rate"], data=speech["audio"])
 ```
+## Espnet
+[Espnet](https://github.com/espnet/espnet)
+
 
 ## Open private models:
 https://huggingface.co/ylacombe/vits_vctk_irish_male
 https://huggingface.co/ylacombe/vits_ljs_irish_male
+
+
+## Voice cloning
+
+TacoTron 2
+
+
+
+# Examples
+
+```
+An aimsir bhog, bhlàth, sa ghàrradh,
+Far a bheil dealain-dè a’ dannsa gu h-àrd;
+Càirdeas nan speur is blàths an t-samhraidh,
+A’ cur cridheachan ann an gaol mar aon.
+```
