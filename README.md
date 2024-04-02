@@ -1,5 +1,11 @@
 # SeaNos
 
+ <p align="center">
+<img src="https://github.com/bramiozo/SeaNos/blob/main/logo.webp" alt="image" width="300" height="auto" >
+ </p>
+<hr width=100%>
+
+
 Development of ```Text``` $\rightarrow$ ```Sean Nos``` using existing models.
 
 
