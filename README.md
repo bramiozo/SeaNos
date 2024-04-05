@@ -8,6 +8,7 @@
 
 Development of ```Text``` $\rightarrow$ ```Sean Nos``` using existing models.
 
+Tutorials: [HF](https://huggingface.co/learn/audio-course/chapter6/tts_datasets)
 
 # Technologies text-to-speech
 
