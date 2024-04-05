@@ -10,6 +10,9 @@ Development of ```Text``` $\rightarrow$ ```Sean Nos``` using existing models.
 
 Tutorials: [HF](https://huggingface.co/learn/audio-course/chapter6/tts_datasets)
 
+```Text``` $\rightarrow$ ```Speech mel spectrogram``` with TTS $\rightarrow$ Waveform with vocoder
+
+
 # Technologies text-to-speech
 
 ## **TTS with MMS**
