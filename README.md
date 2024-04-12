@@ -69,3 +69,12 @@ Far a bheil dealain-dè a’ dannsa gu h-àrd;
 Càirdeas nan speur is blàths an t-samhraidh,
 A’ cur cridheachan ann an gaol mar aon.
 ```
+
+
+# Architecture
+
+Training pipeline:
+```(raw wav)``` $\rightarrow$ ```clean wav``` $\rightarrow$ ```(text, wav)``` $\rightarrow$ ```text-to-speech``` $\rightarrow$ ```Sean Nos``` 
+
+Inference pipeline:
+```text generation``` $\rightarrow$ ```text-to-speech``` $\rightarrow$ ```Sean Nos```
