@@ -1,11 +1,12 @@
 import dotenv
+from dotenv import find_dotenv
 import os
 import benedict
 
 
 def load_env():
     # load the .env file
-    dotenv.load_dotenv(dotenv_path="../.env")
+    dotenv.load_dotenv(dotenv_path=find_dotenv())
 
     # get the environment variables
     return {

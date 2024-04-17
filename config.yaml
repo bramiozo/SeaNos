@@ -10,3 +10,13 @@ temperature: 0.5
 num_responses: 1
 model: "gpt-4-turbo-2024-04-09" # gpt4-1106-preview
 news_topic: "Ireland"
+rss_sources: 
+  bbc:
+    url: http://feeds.bbci.co.uk/news/rss.xml
+    title: title
+    description: description
+
+  nyt:
+    url: https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml
+    title: title
+    description: description

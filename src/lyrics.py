@@ -5,10 +5,10 @@
 # https://platform.openai.com/docs/guides/text-to-speech
 
 import openai
-import asyncio
+# import asyncio
 from openai import AsyncOpenAI, OpenAI
-import datetime
-import os
+# import datetime
+# import os
 import random
 
 from src.utils import load_env
@@ -23,14 +23,7 @@ class Lyrics:
         self.temperature = config["temperature"]
         self.num_responses = config["num_responses"]
         self.model = config["model"]
-        self.news_topic = config["news_topic"]
-
         self.keys = load_env()
-        self.News = News(api_key=self.keys['NEWS_API_KEY'])
-
-    def get_news(self, query="Headline news"):
-        result = self.News.get_top_news(query)
-        return f"Here are the latest news: {result}"
 
     def initialise_openai(self):
         # initialise the OpenAI API
@@ -40,12 +33,11 @@ class Lyrics:
         self.OAI_CLIENT = OpenAI(
             api_key=self.keys['LLM_API_KEY'], max_retries=2)
 
-    def run_model(self):
+    def run_model(self, newsContent):
         # load the model
         # openai.ChatCompletion.create
         max_len = len(self.user_prompts)
         rnd_sel = random.randint(0, max_len - 1)
-        newsAgg = str(self.get_news(query=self.news_topic))
         return self.OAI_CLIENT.chat.completions.create(
             model=self.model,
             n=self.num_responses,
@@ -55,14 +47,14 @@ class Lyrics:
                 {"role": "user", "content": self.user_prompts[rnd_sel]},
                 {"role": "user", "content": "The news is as follows:"},
                 {"role": "user",
-                 "content": newsAgg},
+                 "content": newsContent},
                 {"role": "user", "content": "Generate the lyrics for the song"},
             ],
             stream=False
         )
 
-    def generate(self):
+    def generate(self, newsContent=None):
         # generate the lyrics for the song
-        res = self.run_model()
+        res = self.run_model(newsContent=newsContent)
         # return the generated lyrics
         return res.choices[0].message.content, res
