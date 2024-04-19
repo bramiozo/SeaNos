@@ -12,7 +12,6 @@ from openai import AsyncOpenAI, OpenAI
 import random
 
 from src.utils import load_env
-from src.news import News
 
 
 class Lyrics:

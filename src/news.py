@@ -3,7 +3,7 @@
 
 from newsapi import NewsApiClient
 from datetime import datetime, timedelta
-from utils import load_config, load_env
+from src.utils import load_config, load_env
 import feedparser
 
 # https://newsdata.io/pricing
@@ -70,7 +70,7 @@ class RSSParser:
 
     def parse_feeds(self):
         news_items = []
-        for sourceName, feedData in self.sources.items():
+        for _, feedData in self.sources.items():
             parsed_feed = feedparser.parse(feedData['url'])
             for entry in parsed_feed.entries:
                 news_items.append({

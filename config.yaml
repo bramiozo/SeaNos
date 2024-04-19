@@ -15,8 +15,11 @@ rss_sources:
     url: http://feeds.bbci.co.uk/news/rss.xml
     title: title
     description: description
-
   nyt:
     url: https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml
+    title: title
+    description: description
+  aljazeera:
+    url: https://www.aljazeera.com/xml/rss/all.xml
     title: title
     description: description
