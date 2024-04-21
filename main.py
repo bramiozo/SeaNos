@@ -4,6 +4,7 @@ from src.lyrics import Lyrics
 from src.news import NewsAPI, RSSParser
 from src.tts import TTS
 from src.utils import load_config, load_env
+from src.summarise import Summary
 
 import os
 import sys
@@ -32,6 +33,7 @@ def lyrics(query=None,
            debug=False,
            topNews=False,
            newsSource='RSS',
+           summary=False,
            newsSelection='random'):
     logger.info("Starting the lyrics generation process")
     logger.info(datetime.now())
@@ -62,60 +64,38 @@ def lyrics(query=None,
         newsString = f'Title:{d["title"]},Description:{d["description"]}'
     elif newsSelection == 'all':
         newsString = " ".join(
-            [f'Title:{d["title"]},Description:{d["description"]}' for d in newsList])
-    elif isinstance(newsSelection, int):
-        newsString = newsList[:newsSelection]
+            [f'Title:{d["title"]},Description:{d["description"]}'
+             for d in newsList])
+    elif newsSelection.isdigit():
+        newsString = " ".join(
+            [f'Title:{d["title"]},Description:{d["description"]}'
+             for d in newsList[:int(newsSelection)]])
+    else:
+        raise ValueError("newsSelection must be 'random', 'all' or an integer")
+
+    if summary:
+        # Use OpenAI to summarise the news
+        srizer = Summary()
+        srizer.initialise_openai()
+        newsString, OAI_summary = srizer.Summarise(newsString)
+        if debug:
+            logger.info(10*"<" + "DEBUGGING SUMMARY" + 10*">")
+            logger.info(str(OAI_summary))
+            logger.info(10*"<" + "DEBUGGING" + 10*">")
 
     if debug:
-        logger.info(10*"<" + "DEBUGGING" + 10*">")
+        logger.info(10*"<" + "DEBUGGING newsString" + 10*">")
         logger.info(str(newsString))
         logger.info(10*"<" + "DEBUGGING" + 10*">")
 
-    lyrics, complete = lyricist.generate(newsString)
+    lyrics, OAI_lyrics = lyricist.generate(newsString)
 
     if debug:
-        logger.info(10*"<" + "DEBUGGING" + 10*">")
-        logger.info(str(complete))
+        logger.info(10*"<" + "DEBUGGING LYRICS" + 10*">")
+        logger.info(str(OAI_lyrics))
         logger.info(10*"<" + "DEBUGGING" + 10*">")
 
     return lyrics
-
-
-def lyrics_generator(query=None, debug=False, refresh_rate=None):
-    logger.info("Starting the lyrics generation iterator")
-    logger.info(datetime.now())
-
-    # loop with refresh rate of refresh_rate seconds
-    # use yield to return the lyrics
-    lyricist = Lyrics(config=load_config(config_path="config.yaml"))
-    lyricist.initialise_openai()
-    print("Query:", query)
-    if query is not None:
-        lyricist.news_topic = query
-
-    keys = load_env()
-    NewsGetter = NewsAPI(api_key=keys['NEWS_API_KEY'])
-
-    counter = 0
-    while True:
-        newsString = NewsGetter.get_top_news(query)
-        if newsString == "":
-            logger.error(f"No news found for q:{query}")
-            newsString = "There shall be peace in our times."
-        lyrics, complete = lyricist.generate(newsString)
-
-        sleep(refresh_rate)
-
-        if debug:
-            logger.info(10*"<" + "DEBUGGING" + 10*">")
-            logger.info(datetime.now())
-            logger.info("NEWS STRING")
-            logger.info(newsString)
-            logger.info("LYRICS")
-            logger.info(str(complete))
-            logger.info(10*"<" + "DEBUGGING" + 10*">")
-            break
-        yield lyrics
 
 
 def speak(lyrics):
@@ -139,6 +119,8 @@ if __name__ == "__main__":
                         help="News source", default='RSS')
     parser.add_argument("--newsSelection", type=str,
                         help="News selection", default='random')
+    parser.add_argument("--summary", type=bool,
+                        help="Summarise the news", default=False)
 
     args = parser.parse_args()
     query = args.query
@@ -147,13 +129,14 @@ if __name__ == "__main__":
     topNews = args.topNews
     newsSource = args.newsSource
     newsSelection = args.newsSelection
+    summary = args.summary
 
     # static, one off run
-    lyrics(query=query,
-           debug=debug,
-           topNews=topNews,
-           newsSource=newsSource,
-           newsSelection=newsSelection)
+    lyrics_text = lyrics(query=query,
+                         debug=debug,
+                         topNews=topNews,
+                         newsSource=newsSource,
+                         newsSelection=newsSelection,
+                         summary=summary)
 
-    # loop, iterator
-    # main(query=query, debug=debug, refresh_rate=refresh_rate)
+    create_speech = speak(lyrics_text)
