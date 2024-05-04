@@ -59,7 +59,7 @@ class NewsAPI:
 
 
 class RSSParser:
-    def __init__(self, sources=None, config_path="../config.yaml"):
+    def __init__(self, sources=None, config_path="config.yaml"):
         config = load_config(config_path)
         DEFAULT_RSS_SOURCES = config['rss_sources']
 

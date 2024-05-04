@@ -13,9 +13,9 @@ import logging
 from time import sleep
 from datetime import datetime
 import random
+import sqlite3
 
-# TODO: add logger
-# TODO: put the generate function in a loop?
+from typing import Literal, Union
 
 # initialise the logger
 logging.basicConfig(level=logging.INFO)
@@ -29,21 +29,13 @@ logger.addHandler(fh)
 # TODO: output to sqlite db
 # TODO: make sqlite db class to feed the news/lyrics
 
-def lyrics(query=None,
-           debug=False,
-           topNews=False,
-           newsSource='RSS',
-           summary=False,
-           newsSelection='random',
-           configpath="config.yaml"):
-    logger.info("Starting the lyrics generation process")
+def get_news(query: str = None,
+             newsSelection: Union[Literal['all', 'random'], int] = 'random',
+             newsSource: str = 'RSS',
+             topNews: bool = False,
+             configpath: str = 'config.yaml'):
+    logger.info("Starting the TTS process")
     logger.info(datetime.now())
-
-    lyricist = Lyrics(config=load_config(config_path=configpath))
-    lyricist.initialise_openai()
-    print("Query:", query)
-    if query is not None:
-        lyricist.news_topic = query
 
     keys = load_env()
     if newsSource == 'newsapi':
@@ -74,37 +66,88 @@ def lyrics(query=None,
     else:
         raise ValueError("newsSelection must be 'random', 'all' or an integer")
 
-    if summary:
-        # Use OpenAI to summarise the news
-        srizer = Summary()
-        srizer.initialise_openai()
-        newsString, OAI_summary = srizer.Summarise(newsString)
-        if debug:
-            logger.info(10*"<" + "DEBUGGING SUMMARY" + 10*">")
-            logger.info(str(OAI_summary))
-            logger.info(10*"<" + "DEBUGGING" + 10*">")
+    return newsString
+
+
+def get_summary(text: str = None, debug: bool = False):
+    logger.info("Summarising the news")
+    logger.info(datetime.now())
+
+    srizer = Summary()
+    srizer.initialise_openai()
+    summary_text, OAI_summary = srizer.Summarise(text)
 
     if debug:
-        logger.info(10*"<" + "DEBUGGING newsString" + 10*">")
-        logger.info(str(newsString))
-        logger.info(10*"<" + "DEBUGGING" + 10*">")
+        logger.info(f"OAI_summary:{OAI_summary}")
+    return summary_text
 
-    lyrics, OAI_lyrics = lyricist.generate(newsString)
 
+def get_phonetics(text: str = None):
+    logger.info("Extracting the phonetics of the lyrics")
+    logger.info(datetime.now())
+
+    phonetics = Phonetics(lyrics_text, source_lang="en", target_lang="gle")
+    lyrics_text_converted = phonetics.convert_text(lyrics_text)
+    return lyrics_text_converted
+
+
+def get_speech(text: str = None,
+               language: str = "en",
+               configpath: str = "config.yaml",
+               modelpath: str = None,
+               outpath: str = None):
+    logger.info("Starting the TTS process")
+    logger.info(datetime.now())
+
+    assert (text is not None), "Text must be provided for TTS"
+    assert (outpath is not None), "Output path must be provided for TTS"
+
+    speaker = Speak(language=language,
+                    config_path=configpath,
+                    model_path=modelpath)
+    speaker.speak(lyrics_text, OutPath=outpath)
+    return True
+
+
+def get_lyrics(text: str = None,
+               query: str = None,
+               debug: bool = False,
+               configpath: str = "config.yaml"):
+    logger.info("Starting the lyrics generation process")
+    logger.info(datetime.now())
+
+    lyricist = Lyrics(config=load_config(config_path=configpath))
+    lyricist.initialise_openai()
+    print("Query:", query)
+    if query is not None:
+        lyricist.news_topic = query
+
+    lyrics, OAI_lyrics = lyricist.generate(text)
     if debug:
-        logger.info(10*"<" + "DEBUGGING LYRICS" + 10*">")
-        logger.info(str(OAI_lyrics))
-        logger.info(10*"<" + "DEBUGGING" + 10*">")
-
+        logger.info(f"OAI_lyrics:{OAI_lyrics}")
     return lyrics
 
 
-def speak(lyrics):
-    '''
-    tts = TTS(config=load_config(config_path="config.yaml"))
-    tts.generate(lyrics)
-    '''
-    pass
+def write_sql(query: str = None,
+              newsSource: str = None,
+              newsSelection: str = None,
+              language: str = None,
+              summaryOfNews: str = None,
+              lyrics_text: str = None,
+              outpath: str = None):
+    """
+    Write the parameters to an sqlite db
+    """
+    conn = sqlite3.connect('artifacts/lyrics.db')
+    c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS lyrics
+                 (creation_date text, query text, newsSource text, newsSelection text, language text, summary text, lyrics text, outpath text)''')
+    conn.commit()
+
+    insert_statement = f'''INSERT INTO lyrics VALUES ("{str(datetime.now())}","{query}","{newsSource}","{newsSelection}","{language}","{summaryOfNews}","{lyrics_text}","{outpath}")'''
+    c.execute(insert_statement)
+    conn.commit()
+    return True
 
 
 if __name__ == "__main__":
@@ -120,8 +163,11 @@ if __name__ == "__main__":
                         help="News source", default='RSS')
     parser.add_argument("--newsSelection", type=str,
                         help="News selection", default='random')
+    parser.add_argument("--language", type=str, default="en")
     parser.add_argument("--summary", type=bool,
                         help="Summarise the news", default=False)
+
+    config_path = "config_demo.yaml"
 
     args = parser.parse_args()
     query = args.query
@@ -131,19 +177,42 @@ if __name__ == "__main__":
     newsSource = args.newsSource
     newsSelection = args.newsSelection
     summary = args.summary
+    language = args.language
 
-    # static, one off run
-    lyrics_text = lyrics(query=query,
-                         debug=debug,
-                         topNews=topNews,
-                         newsSource=newsSource,
+    newsTexts = get_news(query=query,
                          newsSelection=newsSelection,
-                         summary=summary,
-                         configpath="config_demo.yaml")
+                         newsSource=newsSource,
+                         topNews=topNews,
+                         configpath=config_path)
+
+    summaryOfNews = get_summary(newsTexts, debug=debug)
+
+    lyrics_text = get_lyrics(text=summaryOfNews,
+                             query=query,
+                             debug=debug,
+                             configpath=config_path)
 
     # text to phonetics
-    phonetics = Phonetics(lyrics_text, source_lang="en", target_lang="gle")
+    # phonetics = Phonetics(lyrics_text, source_lang="en", target_lang="gle")
+    # lyrics_text_converted = phonetics.convert_text(lyrics_text)
+
+    # outpath is the output path for the TTS, should be randomly generated with datetime
+    outpath = f"artifacts/{language}_{query}_{newsSource}_{datetime.now().strftime('%Y%m%d%H%M%S')}.wav"
+    outpath = outpath.replace(" ", "_")
+    # We want to store the output path in an sqlite db,
+    # together with the lyrics, the news text and the parameters
+
+    write_sql(query=query,
+              newsSource=newsSource,
+              newsSelection=newsSelection,
+              language=language,
+              summaryOfNews=summaryOfNews,
+              lyrics_text=lyrics_text,
+              outpath=outpath)
 
     # language: gle (Irish)
-    speaker = Speak(language="en", config_path="config_demo.yaml")
-    speaker.speak(lyrics_text, OutPath="./artifacts/output.wav")
+    speak = get_speech(text=lyrics_text,
+                       language=language,
+                       modelpath=None,
+                       configpath=config_path,
+                       outpath=outpath)
