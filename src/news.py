@@ -87,6 +87,7 @@ if __name__ == "__main__":
 
     print(30*"-")
     print(NewsGetter.get_top_news('Ireland')[:3])
+    print(30*"=")
     print(NewsGetter.get_any_news('Ireland')[:3])
     print(30*"-")
 

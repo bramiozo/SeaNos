@@ -82,3 +82,9 @@ Training pipeline:
 
 Inference pipeline:
 ```text generation``` $\rightarrow$ ```text-to-speech``` $\rightarrow$ ```Sean Nos```
+
+
+# References
+
+* https://huggingface.co/facebook/seamless-streaming
+* https://huggingface.co/audo/seamless-m4t-v2-large

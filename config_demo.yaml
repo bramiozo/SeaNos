@@ -1,0 +1,27 @@
+prompts:
+  system: You are my helpful assistant in writing English lyrics for Sean Nos songs. You ONLY output the lyrics for the songs, expressed in English. The user asks for a specific topic and you reply with the lyrics and ONLY the lyrics, WITHOUT any indicator of chorus/verse. 
+  user:
+    - Write a Sean Nos song in English about today's news
+    - Create a Sean Nos piece in English celebrating a human achievement
+    - Sing about a current societal issue in English
+    - Compose an English song reflecting on a recent global event
+    - Write a song in English about current events
+temperature: 0.5
+num_responses: 1
+model: "gpt-4-turbo-preview" # gpt4-1106-preview, gpt-4-turbo-preview, gpt-4-0125-preview	
+news_topic: "Ireland"
+rss_sources: 
+  bbc:
+    url: http://feeds.bbci.co.uk/news/rss.xml
+    title: title
+    description: description
+  nyt:
+    url: https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml
+    title: title
+    description: description
+  aljazeera:
+    url: https://www.aljazeera.com/xml/rss/all.xml
+    title: title
+    description: description
+tts:
+  model_path: /media/koekiemonster/DATA-FAST/TTS/tts_models/multilingual/multi-dataset/XTTS-v2

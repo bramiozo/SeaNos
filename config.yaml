@@ -23,3 +23,5 @@ rss_sources:
     url: https://www.aljazeera.com/xml/rss/all.xml
     title: title
     description: description
+tts:
+  model:  # tts_models/multilingual/multi-dataset/xtts_v2

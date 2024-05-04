@@ -2,7 +2,7 @@
 #
 from src.lyrics import Lyrics
 from src.news import NewsAPI, RSSParser
-from src.tts import TTS
+from src.speak import Speak
 from src.utils import load_config, load_env
 from src.summarise import Summary
 
@@ -34,11 +34,12 @@ def lyrics(query=None,
            topNews=False,
            newsSource='RSS',
            summary=False,
-           newsSelection='random'):
+           newsSelection='random',
+           configpath="config.yaml"):
     logger.info("Starting the lyrics generation process")
     logger.info(datetime.now())
 
-    lyricist = Lyrics(config=load_config(config_path="config.yaml"))
+    lyricist = Lyrics(config=load_config(config_path=configpath))
     lyricist.initialise_openai()
     print("Query:", query)
     if query is not None:
@@ -52,7 +53,7 @@ def lyrics(query=None,
         else:
             newsList = NewsGetter.get_any_news(query)
     elif newsSource == 'RSS':
-        RSSGetter = RSSParser(config_path="config.yaml")
+        RSSGetter = RSSParser(config_path=configpath)
         newsList = RSSGetter.parse_feeds()
 
     if len(newsList) == 0:
@@ -137,6 +138,12 @@ if __name__ == "__main__":
                          topNews=topNews,
                          newsSource=newsSource,
                          newsSelection=newsSelection,
-                         summary=summary)
+                         summary=summary,
+                         configpath="config_demo.yaml")
 
-    create_speech = speak(lyrics_text)
+    # text to phonetics
+    phonetics = Phonetics(lyrics_text, source_lang="en", target_lang="gle")
+
+    # language: gle (Irish)
+    speaker = Speak(language="en", config_path="config_demo.yaml")
+    speaker.speak(lyrics_text, OutPath="./artifacts/output.wav")
