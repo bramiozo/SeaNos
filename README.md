@@ -78,7 +78,11 @@ A’ cur cridheachan ann an gaol mar aon.
 # Architecture
 
 Training pipeline:
-```(raw wav)``` $\rightarrow$ ```clean wav``` $\rightarrow$ ```(text, wav)``` $\rightarrow$ ```text-to-speech``` $\rightarrow$ ```Sean Nos``` 
+```raw wav snippets | align with | raw text snippets```
+
+```raw text snippets $\rightarrow$ phonetics```
+
+``` raw wav snippets ``` $\rightarrow$ ```clean wav snippets``` $\rightarrow$ ```pairs(phonetics, wav)``` $\rightarrow$ ```text-to-speech``` $\rightarrow$ ```Sean Nos``` 
 
 Inference pipeline:
 ```text generation``` $\rightarrow$ ```text-to-speech``` $\rightarrow$ ```Sean Nos```
@@ -88,3 +92,5 @@ Inference pipeline:
 
 * https://huggingface.co/facebook/seamless-streaming
 * https://huggingface.co/audo/seamless-m4t-v2-large
+* https://medium.com/@tttzof351/build-text-to-speech-from-scratch-part-1-ba8b313a504f
+* https://docs.nvidia.com/nemo-framework/user-guide/latest/nemotoolkit/tts/g2p.html
