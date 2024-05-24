@@ -1,6 +1,8 @@
 import torch
 import transformers
 from TTS.api import TTS
+from TTS.tts.models.vits import Vits
+from TTS.tts.models.xtts import Xtts
 from src.utils import load_config
 import os
 # here is the module to generate the speech wav, based on the lyrics
@@ -11,12 +13,14 @@ import os
 
 
 # models : ylacombe/vits_vctk_irish_male, ylacombe/vits_ljs_irish_male
+# models: neongeckocom/tts-vits-cv-ga
+# models: https://aimodels.org/ai-models/text-to-speech-synthesis/irish-female-tts-model-vits-encoding-trained-on-cv-dataset-at-22050hz/
 # transformers.pipeline('text-to-speech', model='ylacombe/vits_vctk_irish_male')
 
 class Speak:
     def __init__(self,
                  config_path: str = "config.yaml",
-                 language: str = "gle",
+                 language: str = "gle",  # ga
                  model_path: str = None):
         """
         Initialize the Speak class.
@@ -32,16 +36,19 @@ class Speak:
         else:
             self.model_path = self.config['tts']['model_path']
 
+        config_path = self.config['tts'].get('config_path')
+        if config_path is None:
+            config_path = os.path.join(self.model_path, "config.json")
+
         self.tts = TTS(progress_bar=True,
                        model_path=self.model_path,
-                       config_path=os.path.join(
-                           self.model_path, "config.json"),
-                       gpu=True)
+                       config_path=config_path)
+        self.tts.to('gpu')
+
+        # state_dict = torch.load(self.model_path)["model"]
+        # self.tts.tts.load_state_dict(state_dict, strict=False)
+
         self.lang = language
-        # print("Available speakers:")
-        # print(self.tts.speakers)
-        # print("Available languages:")
-        # print(self.tts.languages)
 
     def speak(self, lyrics, OutPath):
         """

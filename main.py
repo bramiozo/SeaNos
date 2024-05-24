@@ -7,6 +7,7 @@ from src.utils import load_config, load_env
 from src.summarise import Summary
 
 import os
+import re
 import sys
 import argparse
 import logging
@@ -21,13 +22,23 @@ from typing import Literal, Union
 logging.basicConfig(level=logging.INFO)
 fh = logging.FileHandler("lyrics.log")
 fh.setLevel(logging.INFO)
+formatter = logging.Formatter(
+    '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+fh.setFormatter(formatter)
 logger = logging.getLogger(__name__)
 logger.addHandler(fh)
+logger.setLevel(logging.INFO)
 
 
-# TODO: new News classes, output list of dictionaries,
-# TODO: output to sqlite db
+def close_handlers():
+    for handler in logger.handlers:
+        handler.close()
+        logger.removeHandler(handler)
+#####################################################
+
+
 # TODO: make sqlite db class to feed the news/lyrics
+
 
 def get_news(query: str = None,
              newsSelection: Union[Literal['all', 'random'], int] = 'random',
@@ -125,6 +136,11 @@ def get_lyrics(text: str = None,
     lyrics, OAI_lyrics = lyricist.generate(text)
     if debug:
         logger.info(f"OAI_lyrics:{OAI_lyrics}")
+
+    # remove quotes
+    lyrics = lyrics.replace('"', '')
+    lyrics = lyrics.replace("'", "")
+
     return lyrics
 
 
@@ -138,6 +154,9 @@ def write_sql(query: str = None,
     """
     Write the parameters to an sqlite db
     """
+    logger.info("Accessing the database")
+    logger.info(datetime.now())
+
     conn = sqlite3.connect('artifacts/lyrics.db')
     c = conn.cursor()
     c.execute('''CREATE TABLE IF NOT EXISTS lyrics
@@ -145,7 +164,11 @@ def write_sql(query: str = None,
     conn.commit()
 
     insert_statement = f'''INSERT INTO lyrics VALUES ("{str(datetime.now())}","{query}","{newsSource}","{newsSelection}","{language}","{summaryOfNews}","{lyrics_text}","{outpath}")'''
-    c.execute(insert_statement)
+    try:
+        c.execute(insert_statement)
+    except Exception as e:
+        logger.error(
+            f"Error in writing lyrics to db:{e}, insert statement:{insert_statement}")
     conn.commit()
     return True
 

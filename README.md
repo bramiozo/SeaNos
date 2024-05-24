@@ -94,3 +94,14 @@ Inference pipeline:
 * https://huggingface.co/audo/seamless-m4t-v2-large
 * https://medium.com/@tttzof351/build-text-to-speech-from-scratch-part-1-ba8b313a504f
 * https://docs.nvidia.com/nemo-framework/user-guide/latest/nemotoolkit/tts/g2p.html
+* https://www.focloir.ie/en/page/tools.html
+* [training](https://docs.coqui.ai/en/dev/tutorial_for_nervous_beginners.html)
+* [trainin2](https://docs.coqui.ai/en/dev/finetuning.html)
+
+# Installation:
+
+```sudo apt install espeak-ng```
+```sudo apt install vlc```
+```sudo apt install ubuntu-restricted-extras```
+
+

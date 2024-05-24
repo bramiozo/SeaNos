@@ -8,7 +8,7 @@ prompts:
     - Write a song in English about current events
 temperature: 0.5
 num_responses: 1
-model: "gpt-4-turbo-preview" # gpt4-1106-preview, gpt-4-turbo-preview, gpt-4-0125-preview	
+model: "gpt-4o" # gpt4-1106-preview, gpt-4-turbo-preview, gpt-4-0125-preview	
 news_topic: "Ireland"
 rss_sources: 
   bbc:
@@ -25,3 +25,7 @@ rss_sources:
     description: description
 tts:
   model_path: /media/koekiemonster/DATA-FAST/TTS/tts_models/multilingual/multi-dataset/XTTS-v2
+  #config_path: None
+  #model_path: /media/koekiemonster/DATA-FAST/TTS/tts_models/multilingual/multi-dataset/vits_ljs_irish_male/
+  #model_path: /media/koekiemonster/DATA-FAST/TTS/tts_models/multilingual/multi-dataset/vits_vctk_irish_male
+  #model_path: /media/koekiemonster/DATA-FAST/TTS/tts_models/multilingual/multi-dataset/tts-vits-cv-ga
