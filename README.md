@@ -79,7 +79,7 @@ A’ cur cridheachan ann an gaol mar aon.
 
 
  <p align="center">
-<img src="[https://github.com/bramiozo/SeaNos/blob/main/SeanNos%20-%20Architecture.png](https://github.com/bramiozo/SeaNos/blob/main/SeanNos%20-%20Architecture.png)" alt="image" width="300" height="auto" >
+<img src="https://github.com/bramiozo/SeaNos/blob/main/SeanNos%20-%20Architecture.png" alt="image" width="300" height="auto" >
  </p>
 <hr width=100%>
 
