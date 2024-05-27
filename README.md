@@ -87,6 +87,13 @@ Training pipeline:
 Inference pipeline:
 ```text generation``` $\rightarrow$ ```text-to-speech``` $\rightarrow$ ```Sean Nos```
 
+## Production
+
+* SQLite3: ```timestamp, news original, news summary, lyrics, Settings hash, TTS model hash, SS model hash, LLM version```
+* TTS server to serve low-latency TTS
+* TTS server to serve low-latency Speech-to-Song
+* RSS news fetcher with SQL fallback
+* LLM API with SQL fallback
 
 # References
 
@@ -100,8 +107,10 @@ Inference pipeline:
 
 # Installation:
 
+```sudo apt install ffmpeg```
 ```sudo apt install espeak-ng```
 ```sudo apt install vlc```
 ```sudo apt install ubuntu-restricted-extras```
+
 
 
