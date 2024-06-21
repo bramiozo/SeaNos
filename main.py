@@ -186,11 +186,11 @@ if __name__ == "__main__":
                         help="News source", default='RSS')
     parser.add_argument("--newsSelection", type=str,
                         help="News selection", default='random')
-    parser.add_argument("--language", type=str, default="en")
+    parser.add_argument("--language", type=str, default="gle")
     parser.add_argument("--summary", type=bool,
                         help="Summarise the news", default=False)
 
-    config_path = "config_demo.yaml"
+    config_path = "config.yaml"
 
     args = parser.parse_args()
     query = args.query
@@ -202,14 +202,17 @@ if __name__ == "__main__":
     summary = args.summary
     language = args.language
 
+    # STEP 1
     newsTexts = get_news(query=query,
                          newsSelection=newsSelection,
                          newsSource=newsSource,
                          topNews=topNews,
                          configpath=config_path)
-
+    
+    # STEP 2
     summaryOfNews = get_summary(newsTexts, debug=debug)
 
+    # STEP 3
     lyrics_text = get_lyrics(text=summaryOfNews,
                              query=query,
                              debug=debug,
@@ -234,6 +237,7 @@ if __name__ == "__main__":
               outpath=outpath)
 
     # language: gle (Irish)
+    # STEP 4
     speak = get_speech(text=lyrics_text,
                        language=language,
                        modelpath=None,

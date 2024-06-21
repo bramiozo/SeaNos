@@ -27,5 +27,5 @@ tts:
   #model_path: /media/koekiemonster/DATA-FAST/TTS/tts_models/multilingual/multi-dataset/vits_ljs_irish_male/model.safetensors
   #model_path: /media/koekiemonster/DATA-FAST/TTS/tts_models/multilingual/multi-dataset/vits_vctk_irish_male/model.safetensors
   #config_path:   /media/koekiemonster/DATA-FAST/TTS/tts_models/multilingual/multi-dataset/vits_vctk_irish_male/config.json
-  model_path: /media/koekiemonster/DATA-FAST/TTS/tts_models/multilingual/multi-dataset/tts-vits-cv-ga/model_file.pth.tar
-  config_path: /media/koekiemonster/DATA-FAST/TTS/tts_models/multilingual/multi-dataset/tts-vits-cv-ga/config.json
+  model_path: /media/koekiemonster/DATA-FAST/TTS/tts_models/tts-vits-cv-ga/model_file.pth.tar
+  config_path: /media/koekiemonster/DATA-FAST/TTS/tts_models/tts-vits-cv-ga/config.json

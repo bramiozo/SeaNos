@@ -3,6 +3,13 @@ import transformers
 from TTS.api import TTS
 from TTS.tts.models.vits import Vits
 from TTS.tts.models.xtts import Xtts
+from neon_tts_plugin_coqui import CoquiTTS as neonTTS
+from IPython.display import Audio
+from scipy.io import wavfile
+import numpy as np
+
+from pydub import AudioSegment
+
 from src.utils import load_config
 import os
 # here is the module to generate the speech wav, based on the lyrics
@@ -40,10 +47,13 @@ class Speak:
         if config_path is None:
             config_path = os.path.join(self.model_path, "config.json")
 
-        self.tts = TTS(progress_bar=True,
-                       model_path=self.model_path,
-                       config_path=config_path)
-        self.tts.to('gpu')
+        if language in ['ga', 'gle']:
+            self.tts = neonTTS(lang="ga", config={})
+        else:
+            self.tts = TTS(progress_bar=True,
+                        model_path=self.model_path,
+                        config_path=config_path)
+            self.tts.to('gpu')
 
         # state_dict = torch.load(self.model_path)["model"]
         # self.tts.tts.load_state_dict(state_dict, strict=False)
@@ -58,14 +68,18 @@ class Speak:
             lyrics (str): Text to convert to speech.
             out_path (str): Path to save the output speech file.
         """
-        self.tts.tts_to_file(
-            text=lyrics,
-            # speaker=self.tts.speakers[0],
-            language=self.lang,
-            speaker_wav="assets/english_bram.wav",
-            file_path=OutPath
-        )
-        pass
+        if self.lang in ['ga', 'gle']:
+            wavresult = self.tts.get_audio(lyrics,  audio_format="ipython")
+            wavfile.write(OutPath, rate=wavresult['rate'], data=np.array(wavresult['data']))
+        else:
+            self.tts.tts_to_file(
+                text=lyrics,
+                # speaker=self.tts.speakers[0],
+                language=self.lang,
+                speaker_wav="assets/english_bram.wav",
+                file_path=OutPath
+            )
+
 
     def convert(self):
         """
@@ -77,8 +91,8 @@ class Speak:
             file_path (str): Path to save the output wav file.
         """
         self.tts.voice_conversion_to_file(
-            source_wav="assets/sweet_scarlet.wav",
-            target_wav="assets/voice_conversion_target.wav",
+            target_wav="assets/sweet_scarlet.wav",
+            source_wav="assets/voice_conversion_target.wav",
             file_path="assets/voice_conversion_output.wav"
         )
         pass

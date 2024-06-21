@@ -3082,18 +3082,18 @@ extra = ["lxml (>=4.6)", "pydot (>=1.4.2)", "pygraphviz (>=1.9)", "sympy (>=1.10
 test = ["codecov (>=2.1)", "pytest (>=7.2)", "pytest-cov (>=4.0)"]
 
 [[package]]
-name = "newsapi"
-version = "0.1.1"
-description = "A python wrapper for News API (newsapi.org)"
+name = "newsapi-python"
+version = "0.2.7"
+description = "An unofficial Python client for the News API"
 optional = false
 python-versions = "*"
 files = [
-    {file = "newsapi-0.1.1-py2.py3-none-any.whl", hash = "sha256:baef702f6e29fc2736932858528d94f18b2baaef9d330018ba78369e005e1df4"},
-    {file = "newsapi-0.1.1.tar.gz", hash = "sha256:ba6eae31d66f8a804134779c4f4a984fea90ef77be20dba40c2808c75042a69a"},
+    {file = "newsapi-python-0.2.7.tar.gz", hash = "sha256:a4b66d5dd9892198cdaa476f7542f2625cdd218e5e3121c8f880b2ace717a3c2"},
+    {file = "newsapi_python-0.2.7-py2.py3-none-any.whl", hash = "sha256:11d34013a24d92ca7b7cbdac84ed2d504862b1e22467bc2a9a6913a70962318e"},
 ]
 
 [package.dependencies]
-requests = "*"
+requests = "<3.0.0"
 
 [[package]]
 name = "nltk"
@@ -6644,4 +6644,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "jaraco.test", "more
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10, <3.11"
-content-hash = "54309cdf50f9faa545f4c5b5b92c980144782e0cd3ff64cd55c69f67d0f9a1d2"
+content-hash = "05e3df50f484a44621748a4983b57baa62472b5afed088db45b1f87ec21daf0a"
