@@ -109,7 +109,8 @@ Inference pipeline:
 * https://docs.nvidia.com/nemo-framework/user-guide/latest/nemotoolkit/tts/g2p.html
 * https://www.focloir.ie/en/page/tools.html
 * [training](https://docs.coqui.ai/en/dev/tutorial_for_nervous_beginners.html)
-* [trainin2](https://docs.coqui.ai/en/dev/finetuning.html)
+* [training2](https://docs.coqui.ai/en/dev/finetuning.html)
+* [speech-to-song](https://arxiv.org/abs/2110.06546)
 
 # Installation:
 
