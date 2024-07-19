@@ -29,3 +29,47 @@ tts:
   #config_path:   /media/koekiemonster/DATA-FAST/TTS/tts_models/multilingual/multi-dataset/vits_vctk_irish_male/config.json
   model_path: /media/koekiemonster/DATA-FAST/TTS/tts_models/tts-vits-cv-ga/model_file.pth.tar
   config_path: /media/koekiemonster/DATA-FAST/TTS/tts_models/tts-vits-cv-ga/config.json
+fallback_lyrics: "Ó, tá na haibhneacha tirim agus na foraoisí ina dtost,
+Tá anáil na talún ag éirí lag agus fuar,
+Na sléibhte ag titim, na farraigí ag ardú go hard,
+Faoi bhrón spéir bhriste.
+
+A chlann na hÉireann, éist leis an gcaoin mhall,
+Tá an t-am tagtha, ní féidir linn a shéanadh níos mó,
+Chun ár mbealaí a athrú, chun an talamh a leigheas,
+Tá todhchaí ina lámha againn.
+
+Uair amháin glas agus féarmhar, ár ngort anois lom,
+Gáir na créatúir ag líonadh an aeir,
+Ón gcruinniú is airde go dtí an fharraige is doimhne,
+Gach nádúr ag impí, 'Nach bhfeicfidh tú?'
+
+A chlann na hÉireann, éist leis an gcaoin mhall,
+Tá an t-am tagtha, ní féidir linn a shéanadh níos mó,
+Chun ár mbealaí a athrú, chun an talamh a leigheas,
+Tá todhchaí ina lámha againn.
+
+An dair ársa ag insint scéalta d'aois,
+Scéalta comhchuibhis agus cothromaíochta, scéalta neamhinste,
+Anois tá scáthanna ag bagairt áit a bhí solas tráth,
+Ach tá dóchas ann ag briseadh an lae.
+
+A chlann na hÉireann, éist leis an gcaoin mhall,
+Tá an t-am tagtha, ní féidir linn a shéanadh níos mó,
+Chun ár mbealaí a athrú, chun an talamh a leigheas,
+Tá todhchaí ina lámha againn.
+
+Le croíthe aontaithe, láidir agus fíor,
+Is féidir linn an rud a bhí againn a athbheochan,
+Chun maireachtáil i síocháin leis an talamh agus an spéir,
+Éireoidh muid le chéile, déanfaimid iarracht le chéile.
+
+A chlann na hÉireann, éist leis an gcaoin mhall,
+Tá an t-am tagtha, ní féidir linn a shéanadh níos mó,
+Chun ár mbealaí a athrú, chun an talamh a leigheas,
+Tá todhchaí ina lámha againn.
+
+Mar sin, geallaimid, le guthanna glana,
+Chun an domhan atá againn a chur i gcrann,
+Do gach saol, do gach cósta,
+Déanfaimid ár ndícheall, go deo arís."

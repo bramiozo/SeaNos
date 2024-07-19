@@ -80,7 +80,7 @@ def get_news(query: str = None,
     return newsString
 
 
-def get_summary(text: str = None, debug: bool = False):
+def get_summary(text: str = None, debug: bool = False) -> str:
     logger.info("Summarising the news")
     logger.info(datetime.now())
 
@@ -148,6 +148,7 @@ def write_sql(query: str = None,
               newsSource: str = None,
               newsSelection: str = None,
               language: str = None,
+              rawNews: str = None,
               summaryOfNews: str = None,
               lyrics_text: str = None,
               outpath: str = None):
@@ -160,10 +161,10 @@ def write_sql(query: str = None,
     conn = sqlite3.connect('artifacts/lyrics.db')
     c = conn.cursor()
     c.execute('''CREATE TABLE IF NOT EXISTS lyrics
-                 (creation_date text, query text, newsSource text, newsSelection text, language text, summary text, lyrics text, outpath text)''')
+                 (creation_date text, query text, newsSource text, newsSelection text, language text, raw text, summary text, lyrics text, outpath text)''')
     conn.commit()
 
-    insert_statement = f'''INSERT INTO lyrics VALUES ("{str(datetime.now())}","{query}","{newsSource}","{newsSelection}","{language}","{summaryOfNews}","{lyrics_text}","{outpath}")'''
+    insert_statement = f'''INSERT INTO lyrics VALUES ("{str(datetime.now())}","{query}","{newsSource}","{newsSelection}","{language}","{rawNews}","{summaryOfNews}","{lyrics_text}","{outpath}")'''
     try:
         c.execute(insert_statement)
     except Exception as e:
@@ -172,6 +173,40 @@ def write_sql(query: str = None,
     conn.commit()
     return True
 
+
+def fetch_latest(query: str = None,
+                 column: Literal['raw', 'summary', 'lyrics']=None) -> str:
+    '''
+    Fetch latest raw text from the SQLite database with this query, or random selection if query has zero matches
+
+    :param query: str
+    :return: str
+    '''
+
+    logger.info("Accessing the database -- for fetching raw news texts")
+    logger.info(datetime.now())
+
+    conn = sqlite3.connect('artifacts/lyrics.db')
+    cursor = conn.cursor()
+
+    if query:
+        cursor.execute(f"SELECT {column} FROM lyrics WHERE query = ? ORDER BY creation_data DESC LIMIT 1", (query,))
+        result = cursor.fetchone()
+
+        if result:
+            txt = result[0]
+        else:
+            cursor.execute(f"SELECT {column} FROM lyrics ORDER BY RANDOM() LIMIT 1")
+            result = cursor.fetchone()
+            txt = result[0] if result else None
+    else:
+        cursor.execute(f"SELECT {column} FROM lyrics ORDER BY RANDOM() LIMIT 1")
+        result = cursor.fetchone()
+        txt = result[0] if result else None
+
+    conn.close()
+
+    return txt
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -202,44 +237,81 @@ if __name__ == "__main__":
     summary = args.summary
     language = args.language
 
-    # STEP 1
-    newsTexts = get_news(query=query,
-                         newsSelection=newsSelection,
-                         newsSource=newsSource,
-                         topNews=topNews,
-                         configpath=config_path)
-    
-    # STEP 2
-    summaryOfNews = get_summary(newsTexts, debug=debug)
+    CONFIG = load_config(config_path=config_path)
+    FALLBACK_LYRICS = CONFIG['fallback_lyrics']
 
-    # STEP 3
-    lyrics_text = get_lyrics(text=summaryOfNews,
-                             query=query,
-                             debug=debug,
-                             configpath=config_path)
+    while True:
+        # STEP 1
+        sleep(20)
+        try:
+            newsTexts = get_news(query=query,
+                                 newsSelection=newsSelection,
+                                 newsSource=newsSource,
+                                 topNews=topNews,
+                                 configpath=config_path)
+        except Exception as e:
+            logger.error(e)
+            # TODO: if fail fetch latest from SQL with same query, or random.
+            newsTexts = fetch_latest(query=query, column='raw')
+            if newsTexts is None:
+                logger.error(f"Query: {query} gave zero results from the lyrics DB and the News fetcher failed")
+                newsTexts = '''The world is burning. No nature, no future.'''
 
-    # text to phonetics
-    # phonetics = Phonetics(lyrics_text, source_lang="en", target_lang="gle")
-    # lyrics_text_converted = phonetics.convert_text(lyrics_text)
+        # STEP 2
+        try:
+            summaryOfNews = get_summary(newsTexts, debug=debug)
+        except Exception as e:
+            logger.error(e)
+            # TODO: if fail fetch from SQL
+            summaryOfNews = fetch_latest(query=query, column='summary')
+            if summaryOfNews is None:
+                logger.error(f"Query: {query} gave zero results from the lyrics DB and the Summary fetcher failed")
+                summaryOfNews = '''The world is burning. No nature, no future.'''
 
-    # outpath is the output path for the TTS, should be randomly generated with datetime
-    outpath = f"artifacts/{language}_{query}_{newsSource}_{datetime.now().strftime('%Y%m%d%H%M%S')}.wav"
-    outpath = outpath.replace(" ", "_")
-    # We want to store the output path in an sqlite db,
-    # together with the lyrics, the news text and the parameters
+        # STEP 3
+        try:
+            lyrics_text = get_lyrics(text=summaryOfNews,
+                                     query=query,
+                                     debug=debug,
+                                     configpath=config_path)
+        except Exception as e:
+            logger.error(e)
+            # TODO: if fail fetch from SQL
+            lyrics_text = fetch_latest(query=query, column='lyrics')
+            if summaryOfNews is None:
+                logger.error(f"Query: {query} gave zero results from the lyrics DB and the Lyrics fetcher failed")
+                lyrics_text = FALLBACK_LYRICS
 
-    write_sql(query=query,
-              newsSource=newsSource,
-              newsSelection=newsSelection,
-              language=language,
-              summaryOfNews=summaryOfNews,
-              lyrics_text=lyrics_text,
-              outpath=outpath)
+        # text to phonetics
+        # phonetics = Phonetics(lyrics_text, source_lang="en", target_lang="gle")
+        # lyrics_text_converted = phonetics.convert_text(lyrics_text)
 
-    # language: gle (Irish)
-    # STEP 4
-    speak = get_speech(text=lyrics_text,
-                       language=language,
-                       modelpath=None,
-                       configpath=config_path,
-                       outpath=outpath)
+        # outpath is the output path for the TTS, should be randomly generated with datetime
+        outpath = f"artifacts/{language}_{query}_{newsSource}_{datetime.now().strftime('%Y%m%d%H%M%S')}.wav"
+        outpath = outpath.replace(" ", "_")
+        # We want to store the output path in an sqlite db,
+        # together with the lyrics, the news text and the parameters
+
+        # language: gle (Irish)
+        # STEP 4
+        try:
+            speak = get_speech(text=lyrics_text,
+                               language=language,
+                               modelpath=None,
+                               configpath=config_path,
+                               outpath=outpath)
+        except Exception as e:
+            logger.error(e)
+            outpath="ERROR"
+
+        # WRITE TO DB
+        write_sql(query=query,
+                  newsSource=newsSource,
+                  newsSelection=newsSelection,
+                  language=language,
+                  rawNews=newsTexts,
+                  summaryOfNews=summaryOfNews,
+                  lyrics_text=lyrics_text,
+                  outpath=outpath)
+
+
