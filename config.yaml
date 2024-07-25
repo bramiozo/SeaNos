@@ -27,8 +27,8 @@ tts:
   #model_path: /media/koekiemonster/DATA-FAST/TTS/tts_models/multilingual/multi-dataset/vits_ljs_irish_male/model.safetensors
   #model_path: /media/koekiemonster/DATA-FAST/TTS/tts_models/multilingual/multi-dataset/vits_vctk_irish_male/model.safetensors
   #config_path:   /media/koekiemonster/DATA-FAST/TTS/tts_models/multilingual/multi-dataset/vits_vctk_irish_male/config.json
-  model_path: /media/koekiemonster/DATA-FAST/TTS/tts_models/tts-vits-cv-ga/model_file.pth.tar
-  config_path: /media/koekiemonster/DATA-FAST/TTS/tts_models/tts-vits-cv-ga/config.json
+  model_path: /media/koekiemonster/DATA-FAST/TTS/tts_models/tts-vits-cv-ga_seanos/model_file.pth.tar
+  config_path: /media/koekiemonster/DATA-FAST/TTS/tts_models/tts-vits-cv-ga_seanos/config.json
 fallback_lyrics: "Ó, tá na haibhneacha tirim agus na foraoisí ina dtost,
 Tá anáil na talún ag éirí lag agus fuar,
 Na sléibhte ag titim, na farraigí ag ardú go hard,

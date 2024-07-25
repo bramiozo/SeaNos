@@ -21,6 +21,9 @@ accelerate = "^0.30.1"
 speechbrain = "^1.0.0"
 pydub = "^0.25.1"
 newsapi-python = "^0.2.7"
+odfpy = "^1.4.1"
+tensorboard = "2.11"
+tensorflow = "2.11"
 
 [tool.poetry.group.dev.dependencies]
 seaborn = "0.13.2"

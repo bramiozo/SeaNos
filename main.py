@@ -238,6 +238,9 @@ if __name__ == "__main__":
     language = args.language
 
     CONFIG = load_config(config_path=config_path)
+
+    print(f"Model: {CONFIG['tts']['model_path'].split('/')[-2]}")
+
     FALLBACK_LYRICS = CONFIG['fallback_lyrics']
 
     while True:
