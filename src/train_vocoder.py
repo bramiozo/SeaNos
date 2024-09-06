@@ -11,14 +11,14 @@ import argparse
 output_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),"output")
 
 config = hifigan_config.HifiganConfig(
-    batch_size=22,
+    batch_size=16,
     eval_batch_size=8,
     num_loader_workers=4,
     num_eval_loader_workers=4,
     run_eval=False,
     test_delay_epochs=5,
     epochs=1000,
-    seq_len=8192,
+    seq_len=32000,
     pad_short=2000,
     use_noise_augment=True,
     eval_split_size=10,

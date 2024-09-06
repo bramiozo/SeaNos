@@ -22,3 +22,5 @@ def load_config(config_path: str):
     # load the YAML configuration file
     config_dict = benedict.benedict(config_path, format="yaml")
     return config_dict
+
+
