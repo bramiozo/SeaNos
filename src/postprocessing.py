@@ -4,4 +4,5 @@ postprocessing the results of the text-to-speech;
 - noise suppression
 - reverberation
 - equalization
+- band filtering
 '''

@@ -9,6 +9,39 @@ from scipy.signal import iirnotch, lfilter, butter
 from pydub import AudioSegment
 import librosa
 
+# Add RIR?
+
+def add_gaussian_noise(audio_segment, noise_level=0.005):
+    """
+    Add Gaussian noise to an audio segment.
+
+    :param audio_segment: PyDub AudioSegment
+    :param noise_level: relative magnitude of the gaussian noise
+    :return:
+    """
+    # Convert audio segment to numpy array
+    samples = np.array(audio_segment.get_array_of_samples())
+
+    # Generate Gaussian noise
+    noise = np.random.normal(0, noise_level * np.max(np.abs(samples)), samples.shape)
+
+    # Add noise to the samples
+    noisy_samples = samples + noise
+
+    # Ensure the values are within the valid range for the audio format
+    noisy_samples = np.clip(noisy_samples, -32768, 32767).astype(np.int16)
+
+    # Create a new AudioSegment from the noisy samples
+    noisy_audio = AudioSegment(
+        noisy_samples.tobytes(),
+        frame_rate=audio_segment.frame_rate,
+        sample_width=audio_segment.sample_width,
+        channels=audio_segment.channels
+    )
+
+    return noisy_audio
+
+
 def stereo_to_mono(audio_segment):
     """
     Convert a stereo audio segment to mono by averaging the channels.
@@ -28,17 +61,17 @@ def resampler(audio_segment, sampling_rate=44000):
     :return: Resampled PyDub AudioSegment
     """
     # Convert PyDub AudioSegment to numpy array
-    samples = np.array(audio_segment.get_array_of_samples())
+    samples = np.array(audio_segment.get_array_of_samples(), dtype=float)
 
     # Resample using librosa
-    resampled = librosa.resample(samples, audio_segment.frame_rate, sampling_rate)
+    resampled = librosa.resample(samples, orig_sr= audio_segment.frame_rate, target_sr= sampling_rate)
 
     # Convert back to PyDub AudioSegment
     resampled_segment = AudioSegment(
         resampled.astype(np.int16).tobytes(),
         frame_rate=sampling_rate,
         sample_width=2,
-        channels=1 if audio_segment.channels == 1 else 2
+        channels=audio_segment.channels
     )
 
     return resampled_segment
@@ -169,7 +202,9 @@ def autotrim(audio_segment, silence_threshold=-40, chunk_size=10):
 def process_audio(audio_segment,
                   use_noise_reduction, use_high_pass, use_low_pass,
                   use_autotrim, use_pitcher, use_mono, use_resampler,
-                  noise_freq=60, octave_change=0.25, target_sample_rate=44_000):
+                  use_noise_adder,
+                  noise_freq=60, octave_change=0.25,
+                  target_sample_rate=44_000, noise_level=1e-4):
     """
     Apply selected processing steps to the audio segment.
 
@@ -188,6 +223,8 @@ def process_audio(audio_segment,
     """
     processed_audio = audio_segment
 
+    if use_mono and processed_audio.channels > 1:
+        processed_audio = stereo_to_mono(processed_audio)
     if use_noise_reduction:
         processed_audio = noise_reduction(processed_audio, noise_freq)  # Example: reduce 60Hz hum
     if use_high_pass:
@@ -198,10 +235,10 @@ def process_audio(audio_segment,
         processed_audio = autotrim(processed_audio)
     if use_pitcher:
         processed_audio = change_pitch(processed_audio, octave_change)
-    if use_mono and processed_audio.channels > 1:
-        processed_audio = stereo_to_mono(processed_audio)
     if use_resampler:
         processed_audio = resampler(processed_audio, target_sample_rate)
+    if use_noise_adder:
+        processed_audio = add_gaussian_noise(processed_audio, noise_level=noise_level)
 
     return processed_audio
 
@@ -231,13 +268,20 @@ def main():
                         help="Resample audio")
     parser.add_argument("--target-sample-rate", dest="target_sample_rate", type=int, default=44_000,
                         help="Target sample rate for resampling")
+    parser.add_argument("--add-noise", dest="add_noise", action="store_true", default=False,
+                        help="Add Gaussian noise to the waveform")
+    parser.add_argument("--noise-level", dest="noise_level", type=float, default=1e-5,
+                        help="Magnitude of the any Gaussian noise added")
+
 
     parser.set_defaults(use_noise_reduction=True, use_high_pass=True, use_low_pass=True, use_autotrim=True)
 
     args = parser.parse_args()
     kwargs = {'noise_freq': float(args.noise_freq),
               'octave_change': float(args.octave_change),
-              'target_sample_rate': args.target_sample_rate}
+              'target_sample_rate': args.target_sample_rate,
+              'noise_level': float(args.noise_level)
+              }
 
     assert(args.input_dir!=args.output_dir), "Input directory cannot be the same as the output directory!"
     assert([fc in args.prefix for fc in [',', '_']]), "Prefix cannot contain ',' or '_'"
@@ -261,6 +305,7 @@ def main():
                                             args.use_pitcher,
                                             args.use_mono,
                                             args.use_resampler,
+                                            args.add_noise,
                                             **kwargs
                                             )
             processed_audio.export(output_path, format="wav")
