@@ -245,6 +245,7 @@ if __name__ == "__main__":
     parser.add_argument("--language", type=str, default="gle")
     parser.add_argument("--summary", type=bool,
                         help="Summarise the news", default=False)
+    parser.add_argument("--max_generations", type=int, default=1e5)
 
     config_path = "config.yaml"
 
@@ -264,9 +265,10 @@ if __name__ == "__main__":
 
     FALLBACK_LYRICS = CONFIG['fallback_lyrics']
 
+    generation_counter = 0
     while True:
         # STEP 1
-        sleep(20)
+        sleep(10)
         try:
             newsTexts = get_news(query=query,
                                  newsSelection=newsSelection,
@@ -362,3 +364,6 @@ if __name__ == "__main__":
             outpath="ERROR"
 
 
+        generation_counter += 1
+        if generation_counter > args.max_generations:
+            break
