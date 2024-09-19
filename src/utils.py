@@ -15,6 +15,7 @@ def load_env():
         "LLM_API_SECRET": os.getenv("LLM_API_SECRET"),
         "LLM_API_URL": os.getenv("LLM_API_URL"),
         "NEWS_API_KEY": os.getenv("NEWS_API_KEY"),
+        "OUTPUT_FOLDER": os.getenv("OUTPUT_FOLDER")
     }
 
 

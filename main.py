@@ -1,10 +1,11 @@
 # loads config with the settings for the lyrics generation
 #
-from src.lyrics import Lyrics
+from src.lyrics import Lyrics, Translate
 from src.news import NewsAPI, RSSParser
 from src.speak import Speak
 from src.utils import load_config, load_env
 from src.summarise import Summary
+import json
 
 import os
 import re
@@ -39,6 +40,7 @@ def close_handlers():
 
 # TODO: make sqlite db class to feed the news/lyrics
 
+ENV = load_env()
 
 def get_news(query: str = None,
              newsSelection: Union[Literal['all', 'random'], int] = 'random',
@@ -48,9 +50,8 @@ def get_news(query: str = None,
     logger.info("Starting the TTS process")
     logger.info(datetime.now())
 
-    keys = load_env()
     if newsSource == 'newsapi':
-        NewsGetter = NewsAPI(api_key=keys['NEWS_API_KEY'])
+        NewsGetter = NewsAPI(api_key=ENV['NEWS_API_KEY'])
         if topNews == True:
             newsList = NewsGetter.get_top_news(query)
         else:
@@ -94,6 +95,7 @@ def get_summary(text: str = None, debug: bool = False) -> str:
 
 
 def get_phonetics(text: str = None):
+    # TODO: FIX, use espeak
     logger.info("Extracting the phonetics of the lyrics")
     logger.info(datetime.now())
 
@@ -142,6 +144,25 @@ def get_lyrics(text: str = None,
     lyrics = lyrics.replace("'", "")
 
     return lyrics
+
+def get_translation(text: str = None,
+               target_language: str="English",
+               debug: bool = False,
+               configpath: str = "config.yaml"):
+    logger.info("Starting the translation process")
+    logger.info(datetime.now())
+
+    translator = Translate(config=load_config(config_path=configpath))
+    translator.initialise_openai()
+    translation, OAI_translation = translator.generate(text)
+    if debug:
+        logger.info(f"OAI_translation:{OAI_translation}")
+
+    # remove quotes
+    translation = translation.replace('"', '')
+    translation = translation.replace("'", "")
+
+    return translation
 
 
 def write_sql(query: str = None,
@@ -271,7 +292,7 @@ if __name__ == "__main__":
                 logger.error(f"Query: {query} gave zero results from the lyrics DB and the Summary fetcher failed")
                 summaryOfNews = '''The world is burning. No nature, no future.'''
 
-        # STEP 3
+        # STEP 3a
         try:
             lyrics_text = get_lyrics(text=summaryOfNews,
                                      query=query,
@@ -285,36 +306,59 @@ if __name__ == "__main__":
                 logger.error(f"Query: {query} gave zero results from the lyrics DB and the Lyrics fetcher failed")
                 lyrics_text = FALLBACK_LYRICS
 
-        # text to phonetics
-        # phonetics = Phonetics(lyrics_text, source_lang="en", target_lang="gle")
-        # lyrics_text_converted = phonetics.convert_text(lyrics_text)
+        # STEP 3b
+        # Translate Gaelic lyrics to English
+        lyrics_text_english = get_translation(lyrics_text,
+                                              configpath=config_path,
+                                              debug=debug,
+                                              target_language="English")
 
-        # outpath is the output path for the TTS, should be randomly generated with datetime
-        outpath = f"artifacts/{language}_{query}_{newsSource}_{datetime.now().strftime('%Y%m%d%H%M%S')}.wav"
-        outpath = outpath.replace(" ", "_")
+
         # We want to store the output path in an sqlite db,
         # together with the lyrics, the news text and the parameters
-
         # language: gle (Irish)
-        # STEP 4
+        # STEP 4a
+
+        # outpath is the output path for the TTS, should be randomly generated with datetime
+        file_name = f"{language}_{query}_{newsSource}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+        outpath = f"{ENV['OUTPUT_FOLDER']}/{file_name}"
+        outpath = outpath.replace(" ", "_")
+
         try:
+            # Generate sound and write to disk
             speak = get_speech(text=lyrics_text,
                                language=language,
                                modelpath=None,
                                configpath=config_path,
-                               outpath=outpath)
+                               outpath=outpath+".wav")
+            # Write the lyrics to json, both in Gaelic, English, with the original news text, and the summary
+            meta_dict = {
+                'lyrics': lyrics_text,
+                'lyrics_english': lyrics_text_english,
+                'summary': summaryOfNews,
+                'language': language,
+                'news_raw': newsTexts,
+                'news_summary': summaryOfNews,
+            }
+            json.dump(meta_dict, open(outpath+".json", 'w'))
+
         except Exception as e:
-            logger.error(e)
+            logger.error(f"Problem getting the epeech: {e}")
             outpath="ERROR"
 
+        # STEP 4b
         # WRITE TO DB
-        write_sql(query=query,
-                  newsSource=newsSource,
-                  newsSelection=newsSelection,
-                  language=language,
-                  rawNews=newsTexts,
-                  summaryOfNews=summaryOfNews,
-                  lyrics_text=lyrics_text,
-                  outpath=outpath)
+        try:
+            write_sql(query=query,
+                      newsSource=newsSource,
+                      newsSelection=newsSelection,
+                      language=language,
+                      rawNews=newsTexts,
+                      summaryOfNews=summaryOfNews,
+                      lyrics_text=lyrics_text,
+                      outpath=outpath)
+        except Exception as e:
+            logger.error(f"Problem writing the speech to sqlite: {e}")
+            outpath="ERROR"
 
 

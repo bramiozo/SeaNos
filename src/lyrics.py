@@ -13,6 +13,47 @@ import random
 
 from src.utils import load_env
 
+class Translate:
+    def __init__(self, config):
+        self.config = config
+        self.target_language = config['target_language']
+        self.system_prompt = config["prompts"]["system_translation"]
+        self.temperature = config["temperature"]
+        self.num_responses = config["num_responses"]
+        self.model = config["model"]
+        self.keys = load_env()
+
+    def initialise_openai(self):
+        # initialise the OpenAI API
+        openai.api_key = self.keys['LLM_API_KEY']
+        self.OAI_ASYNC_CLIENT = AsyncOpenAI(
+            api_key=self.keys['LLM_API_KEY'], max_retries=2)
+        self.OAI_CLIENT = OpenAI(
+            api_key=self.keys['LLM_API_KEY'], max_retries=2)
+
+    def run_model(self, GaelicSong):
+        # load the model
+        # openai.ChatCompletion.create
+        return self.OAI_CLIENT.chat.completions.create(
+            model=self.model,
+            n=self.num_responses,
+            temperature=self.temperature,
+            messages=[
+                {"role": "system", "content": self.system_prompt},
+                {"role": "user", "content": "The Gaelic song is as follows:"},
+                {"role": "user",
+                 "content": GaelicSong},
+                {"role": "user", "content": f"Generate the {self.target_language} translation of the song"},
+            ],
+            stream=False
+        )
+
+    def generate(self, GaelicSong=None):
+        # generate the lyrics for the song
+        res = self.run_model(GaelicSong=GaelicSong)
+        # return the generated lyrics
+        return res.choices[0].message.content, res
+
 
 class Lyrics:
     def __init__(self, config):

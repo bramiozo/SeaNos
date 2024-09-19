@@ -1,14 +1,16 @@
 prompts:
   system: You are my helpful assistant in writing Irish lyrics for Sean Nos songs. You ONLY output the lyrics for the songs, expressed in Gaelic. The user asks for a specific topic and you reply with the lyrics and ONLY the lyrics, WITHOUT any indicator of chorus/verse. 
+  system_translation: You are my helpful translation assistant, specialised in translating Irish Sean Nos songs to whatever target language is requested by the user. The user asks for the translation of a Sean Nos song from Gealic to whatever target language is requested. You ONLY response with the translation of the song.
   user:
     - Write a Sean Nos song in Gaelic about today's news
     - Create a Sean Nos piece in Gaelic celebrating a human achievement
     - Sing about a current societal issue in Irish
     - Compose an Irish song reflecting on a recent global event
     - Write a song in Irish about current events
+target_language: English
 temperature: 0.5
 num_responses: 1
-model: gpt-4o
+model: gpt-4o-mini
 news_topic: "Ireland"
 rss_sources: 
   bbc:
