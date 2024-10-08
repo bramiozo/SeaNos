@@ -52,7 +52,7 @@ def stereo_to_mono(audio_segment):
     return audio_segment.set_channels(1)
 
 
-def resampler(audio_segment, sampling_rate=44000):
+def resampler(audio_segment, sampling_rate=44050):
     """
     Resample the audio to the specified sampling rate.
 
@@ -136,7 +136,7 @@ def high_pass_filter(audio_segment, cutoff_freq=200):
     return filtered_audio
 
 
-def low_pass_filter(audio_segment, cutoff_freq=6_000):
+def low_pass_filter(audio_segment, cutoff_freq=4_000):
     """
     Apply a low pass filter to the audio. This filters out all frequencies above the cutt-off frequency
 

@@ -6,3 +6,6 @@ postprocessing the results of the text-to-speech;
 - equalization
 - band filtering
 '''
+
+# https://github.com/timsainb/noisereduce
+# https://github.com/Rikorose/DeepFilterNet?
