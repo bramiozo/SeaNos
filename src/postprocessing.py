@@ -8,4 +8,7 @@ postprocessing the results of the text-to-speech;
 '''
 
 # https://github.com/timsainb/noisereduce
-# https://github.com/Rikorose/DeepFilterNet?
+# https://github.com/Rikorose/DeepFilterNet
+# https://huggingface.co/nvidia/tts_hifigan
+
+

@@ -4,10 +4,15 @@
 
 import argparse
 import os
+from multiprocessing.managers import Value
+
 import numpy as np
-from scipy.signal import iirnotch, lfilter, butter
+from scipy.signal import iirnotch, lfilter, butter, savgol_filter, fftconvolve
 from pydub import AudioSegment
 import librosa
+from scipy.ndimage import convolve1d
+
+from typing import List, Union, Tuple, Literal
 
 # Add RIR?
 
@@ -75,7 +80,9 @@ def resampler(audio_segment, sampling_rate=44050):
     )
 
     return resampled_segment
-def noise_reduction(audio_segment, noise_freq, q=30.0):
+def noise_reduction(audio_segment: AudioSegment,
+                    noise_freq: int=64,
+                    q: float=30.0):
     """
     Reduce noise at a specific frequency using a notch filter.
 
@@ -103,6 +110,76 @@ def noise_reduction(audio_segment, noise_freq, q=30.0):
 
     return filtered_audio
 
+
+def kernel_smoother(audio_segment: AudioSegment, smoothing_kernel=(1, 2, 1)):
+    '''
+    Applies Gaussian smoother to audio signal
+
+    :param audio_segment: The input audio segment to be smoothed
+    :param kernel: The weights of the Gaussian filter
+    :return: Smoothed AudioSegment
+    '''
+    # Convert AudioSegment to raw audio data (numpy array)
+    samples = np.array(audio_segment.get_array_of_samples())
+
+    # Apply Gaussian smoothing kernel using convolution
+    smoothed_samples = convolve1d(samples, weights=smoothing_kernel, mode='reflect')
+
+    # Ensure smoothed samples are within the original data type range
+    smoothed_samples = np.clip(smoothed_samples, -32768, 32767).astype(np.int16)
+
+    # Convert the smoothed numpy array back to an AudioSegment
+    smoothed_audio_segment = AudioSegment(
+        smoothed_samples.tobytes(),
+        frame_rate=audio_segment.frame_rate,
+        sample_width=audio_segment.sample_width,
+        channels=audio_segment.channels
+    )
+    return smoothed_audio_segment
+
+
+def special_smoother(audio_segment: AudioSegment,
+                     kernel_type: Literal['savgol_filter', 'fftconvolve'] = 'savgol_filter',
+                     window_length:int=9,
+                     polyorder: int=3
+                     ):
+    '''
+    Applies a special smoother to the audio signal using either Savitzky-Golay filter or FFT convolution
+
+    :param audio_segment: The input audio segment to be smoothed
+    :param smoothing_kernel: The type of smoothing to apply, either 'savgol_filter' or 'fftconvolve'
+    :return: Smoothed AudioSegment
+    '''
+    # Convert AudioSegment to raw audio data (numpy array)
+    samples = np.array(audio_segment.get_array_of_samples())
+
+    # Choose smoothing method
+    if kernel_type == 'savgol_filter':
+        # Apply Savitzky-Golay filter (e.g., window_length=window_length, polyorder=2)
+        smoothed_samples = savgol_filter(samples, window_length=window_length, polyorder=polyorder)
+
+    elif kernel_type == 'fftconvolve':
+        # Define a Gaussian-like kernel for FFT convolution
+        kernel = np.exp(-np.linspace(-3, 3, window_length) ** 2)
+        kernel /= kernel.sum()  # Normalize the kernel
+        # Apply FFT convolution with the kernel
+        smoothed_samples = fftconvolve(samples, kernel, mode='same')
+
+    else:
+        raise ValueError("smoothing_kernel must be either 'savgol_filter' or 'fftconvolve'")
+
+    # Ensure the smoothed samples are within the range for 16-bit audio
+    smoothed_samples = np.clip(smoothed_samples, -32768, 32767).astype(np.int16)
+
+    # Convert the smoothed samples back to an AudioSegment
+    smoothed_audio_segment = AudioSegment(
+        smoothed_samples.tobytes(),
+        frame_rate=audio_segment.frame_rate,
+        sample_width=audio_segment.sample_width,
+        channels=audio_segment.channels
+    )
+
+    return smoothed_audio_segment
 
 def high_pass_filter(audio_segment, cutoff_freq=200):
     """
@@ -182,7 +259,7 @@ def autotrim(audio_segment, silence_threshold=-40, chunk_size=10):
     :param audio_segment: PyDub AudioSegment
     :param silence_threshold: The threshold (in dB) below which to consider as silence
     :param chunk_size: Size of audio chunks to analyze (in milliseconds)
-    :return: Trimmed PyDub AudioSegment
+    :return: Trimmed PyDub AudioSegment+
     """
     def detect_leading_silence(segment, silence_threshold, chunk_size):
         trim_ms = 0
@@ -200,11 +277,23 @@ def autotrim(audio_segment, silence_threshold=-40, chunk_size=10):
 
 
 def process_audio(audio_segment,
-                  use_noise_reduction, use_high_pass, use_low_pass,
-                  use_autotrim, use_pitcher, use_mono, use_resampler,
+                  use_noise_reduction,
+                  use_high_pass,
+                  use_low_pass,
+                  use_autotrim,
+                  use_pitcher,
+                  use_mono,
+                  use_resampler,
                   use_noise_adder,
+                  use_kernel_smoother,
+                  use_special_smoother,
                   noise_freq=60, octave_change=0.25,
-                  target_sample_rate=44_000, noise_level=1e-4):
+                  target_sample_rate=44_000, noise_level=1e-4,
+                  smoothing_kernel=(1,2,1),
+                  poly_order=3,
+                  kernel_type: Literal['savgol_filter', 'fftconvolve']='savgol_filter',
+                  window_length=7
+                  ):
     """
     Apply selected processing steps to the audio segment.
 
@@ -223,7 +312,17 @@ def process_audio(audio_segment,
     """
     processed_audio = audio_segment
 
-    if use_mono and processed_audio.channels > 1:
+    if isinstance(processed_audio, np.ndarray):
+        if len(processed_audio.shape) == 1:
+            num_channels = 1  # Mono
+        else:
+            num_channels = processed_audio.shape[1]
+    elif isinstance(processed_audio, AudioSegment):
+        num_channels = processed_audio.channels
+    else:
+        raise ValueError("Processed audio should be an AudioSegment instance, or a numpy array")
+
+    if use_mono and num_channels > 1:
         processed_audio = stereo_to_mono(processed_audio)
     if use_noise_reduction:
         processed_audio = noise_reduction(processed_audio, noise_freq)  # Example: reduce 60Hz hum
@@ -239,6 +338,11 @@ def process_audio(audio_segment,
         processed_audio = resampler(processed_audio, target_sample_rate)
     if use_noise_adder:
         processed_audio = add_gaussian_noise(processed_audio, noise_level=noise_level)
+    if use_kernel_smoother:
+        processed_audio = kernel_smoother(processed_audio, smoothing_kernel=smoothing_kernel)
+    if use_special_smoother:
+        processed_audio = special_smoother(processed_audio, kernel_type=kernel_type,
+                                           window_length=window_length, polyorder=poly_order)
 
     return processed_audio
 

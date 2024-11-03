@@ -7,6 +7,7 @@ from neon_tts_plugin_coqui import CoquiTTS as neonTTS
 from IPython.display import Audio
 from scipy.io import wavfile
 import numpy as np
+import random
 
 from pydub import AudioSegment
 
@@ -28,6 +29,7 @@ class Speak:
     def __init__(self,
                  config_path: str = "config.yaml",
                  language: str = "gle",  # ga
+                 use_neon: bool = True,
                  model_path: str = None):
         """
         Initialize the Speak class.
@@ -47,18 +49,19 @@ class Speak:
         if config_path is None:
             config_path = os.path.join(self.model_path, "config.json")
 
-        if language in ['ga', 'gle']:
+        if (language in ['ga', 'gle']) and (use_neon):
             self.tts = neonTTS(lang="ga", config={})
         else:
             self.tts = TTS(progress_bar=True,
                         model_path=self.model_path,
                         config_path=config_path)
-            self.tts.to('gpu')
+            self.tts.to('cuda')
 
         # state_dict = torch.load(self.model_path)["model"]
         # self.tts.tts.load_state_dict(state_dict, strict=False)
 
         self.lang = language
+        self.use_neon = use_neon
 
     def speak(self, lyrics, OutPath):
         """
@@ -68,9 +71,18 @@ class Speak:
             lyrics (str): Text to convert to speech.
             out_path (str): Path to save the output speech file.
         """
-        if self.lang in ['ga', 'gle']:
+        if (self.lang in ['ga', 'gle']) and (self.use_neon):
             wavresult = self.tts.get_audio(lyrics,  audio_format="ipython")
             wavfile.write(OutPath, rate=wavresult['rate'], data=np.array(wavresult['data']))
+        elif (self.lang in ['ga', 'gle']):
+            synth = self.tts.synthesizer
+            sampling_rate = synth.output_sample_rate
+            # random select a singer
+            singer = random.choice(self.tts.speakers)
+            irish_waveform = synth.tts(lyrics, speaker_name=singer)
+            irish_waveform = np.array(irish_waveform)
+            irish_waveform = np.squeeze(irish_waveform)
+            wavfile.write(OutPath, rate=sampling_rate, data=irish_waveform)
         else:
             self.tts.tts_to_file(
                 text=lyrics,
