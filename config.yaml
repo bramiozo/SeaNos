@@ -45,6 +45,9 @@ tts:
   #config_path:   /media/koekiemonster/DATA-FAST/TTS/tts_models/multilingual/multi-dataset/vits_vctk_irish_male/config.json
   model_path: /media/bramiozo/DATA-FAST/TTS/tts_models/gle/tts-vits-cv-ga_seanos/withPhonemes_withSpeakerEncoder_fft4098_allSingers_seperatedByPrep/model_file.pth.tar
   config_path: /media/bramiozo/DATA-FAST/TTS/tts_models/gle/tts-vits-cv-ga_seanos/withPhonemes_withSpeakerEncoder_fft4098_allSingers_seperatedByPrep/config.json
+speaker_preferences:
+  - MCV_50845f6ca0aede609736d33690729e81
+  - MCV_2e1a0d53fe52efddf489eb03ee27dc63
 denoise:
     prop_decrease: 0.8
     n_fft: 2048

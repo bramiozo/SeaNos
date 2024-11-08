@@ -37,6 +37,7 @@ class Speak:
                  denoise: bool = True,
                  use_neon: bool = True,
                  model_path: str = None,
+                 speaker_preferences = None,
                  denoise_kwargs: dict = None):
         """
         Initialize the Speak class.
@@ -77,6 +78,23 @@ class Speak:
             if isinstance(denoise_kwargs, dict):
                 self.denoise_kwargs = denoise_kwargs
 
+        if speaker_preferences is not None:
+            self.speaker_preferences = speaker_preferences
+        else:
+            self.speaker_preferences = self.config.get('speaker_preferences', [])
+
+        if len(self.speaker_preferences) == 0:
+            try:
+                self.speaker_preferences = self.tts.speakers
+            except Exception as e:
+                logger.info(f"Selected TTS is mono speaker model: {e}")
+                pass
+        else:
+            logger.info("Checking of preferred speakers are available")
+            isect_speakers = set(self.speaker_preferences).intersection(set(self.tts.speakers))
+            assert(len(isect_speakers) >= 1), "None of the preferred speakers are available in the model"
+            logger.info(f"The speakers: {isect_speakers} are selected for generation")
+
     @staticmethod
     def denoiser(x: np.ndarray,
                 sr: int=44_000,
@@ -109,7 +127,7 @@ class Speak:
             synth = self.tts.synthesizer
             sampling_rate = synth.output_sample_rate
             # random select a singer
-            singer = random.choice(self.tts.speakers)
+            singer = random.choice(self.speaker_preferences)
             self.speaker_id = singer
             irish_waveform = synth.tts(lyrics, speaker_name=singer)
             irish_waveform = np.array(irish_waveform)
