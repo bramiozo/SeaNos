@@ -8,6 +8,9 @@ from IPython.display import Audio
 from scipy.io import wavfile
 import numpy as np
 import random
+import logging
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 from pydub import AudioSegment
 
@@ -80,7 +83,7 @@ class Speak:
                 n_fft: int=2048,
                 win_length: int=2048,
                 hop_length: int=512,
-                prop_decrease: float=0.8) -> np.ndarray:
+                prop_decrease: float=0.75) -> np.ndarray:
 
         reduced_noise = nr.reduce_noise(y=x,
                                         sr=sr,
@@ -113,6 +116,7 @@ class Speak:
             irish_waveform = np.squeeze(irish_waveform)
             irish_waveform = np.int16(irish_waveform * 32767)
             if self.denoise:
+                logger.info(f"Denoising synthetic audio with {self.denoise_kwargs}")
                 irish_waveform = self.denoiser(irish_waveform,
                                                sr=sampling_rate,
                                                **self.denoise_kwargs)

@@ -119,6 +119,7 @@ def get_speech(text: str = None,
     speaker = Speak(language=language,
                     config_path=configpath,
                     use_neon=use_neon,
+                    denoise=True,
                     model_path=modelpath)
     speaker.speak(lyrics_text, OutPath=outpath)
     return speaker.speaker_id
