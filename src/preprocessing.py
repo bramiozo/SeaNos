@@ -15,6 +15,8 @@ from scipy.ndimage import convolve1d
 from typing import List, Union, Tuple, Literal
 
 # Add RIR?
+# Add: https://github.com/iver56/audiomentations
+# Add: https://pytorch.org/audio/master/tutorials/audio_data_augmentation_tutorial.html
 
 def add_gaussian_noise(audio_segment, noise_level=0.005):
     """

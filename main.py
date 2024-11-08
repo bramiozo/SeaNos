@@ -108,6 +108,7 @@ def get_speech(text: str = None,
                language: str = "en",
                configpath: str = "config.yaml",
                modelpath: str = None,
+               use_neon: bool = True,
                outpath: str = None):
     logger.info("Starting the TTS process")
     logger.info(datetime.now())
@@ -117,9 +118,10 @@ def get_speech(text: str = None,
 
     speaker = Speak(language=language,
                     config_path=configpath,
+                    use_neon=use_neon,
                     model_path=modelpath)
     speaker.speak(lyrics_text, OutPath=outpath)
-    return True
+    return speaker.speaker_id
 
 
 def get_lyrics(text: str = None,
@@ -231,11 +233,11 @@ def fetch_latest(query: str = None,
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--query", default="Headline news",
+    parser.add_argument("--query", default=None,
                         help="Query to generate lyrics for")
     parser.add_argument("--debug", type=bool, help="Debug mode", default=False)
     parser.add_argument("--refresh", type=int, help="Refresh rate in seconds",
-                        default=None)
+                        default=10)
     parser.add_argument("--topNews", type=bool,
                         help="Get top news", default=False)
     parser.add_argument("--newsSource", type=str,
@@ -245,14 +247,16 @@ if __name__ == "__main__":
     parser.add_argument("--language", type=str, default="gle")
     parser.add_argument("--summary", type=bool,
                         help="Summarise the news", default=False)
-    parser.add_argument("--max_generations", type=int, default=1e5)
+    parser.add_argument("--max_generations", type=int, default=1e2)
+    parser.add_argument("--custom", action="store_true", default=False)
 
     config_path = "config.yaml"
 
     args = parser.parse_args()
-    query = args.query
+    use_neon = args.custom==False
+    query = [args.query]
     debug = args.debug
-    refresh_rate = args.refresh
+    refresh_rate = int(args.refresh)
     topNews = args.topNews
     newsSource = args.newsSource
     newsSelection = args.newsSelection
@@ -262,13 +266,17 @@ if __name__ == "__main__":
     CONFIG = load_config(config_path=config_path)
 
     print(f"Model: {CONFIG['tts']['model_path'].split('/')[-2]}")
+    print(f"Neon: {use_neon}")
 
     FALLBACK_LYRICS = CONFIG['fallback_lyrics']
+
+    queries = CONFIG['queries']
 
     generation_counter = 0
     while True:
         # STEP 1
-        sleep(10)
+        sleep(refresh_rate)
+        query = random.choice(queries)
         try:
             newsTexts = get_news(query=query,
                                  newsSelection=newsSelection,
@@ -328,13 +336,16 @@ if __name__ == "__main__":
 
         try:
             # Generate sound and write to disk
-            speak = get_speech(text=lyrics_text,
+            speaker_id = get_speech(text=lyrics_text,
                                language=language,
                                modelpath=None,
                                configpath=config_path,
+                               use_neon = use_neon,
                                outpath=outpath+".wav")
+
             # Write the lyrics to json, both in Gaelic, English, with the original news text, and the summary
             meta_dict = {
+                'singer': speaker_id,
                 'lyrics': lyrics_text,
                 'lyrics_english': lyrics_text_english,
                 'summary': summaryOfNews,
@@ -345,7 +356,7 @@ if __name__ == "__main__":
             json.dump(meta_dict, open(outpath+".json", 'w'))
 
         except Exception as e:
-            logger.error(f"Problem getting the epeech: {e}")
+            logger.error(f"Problem getting the speech: {e}")
             outpath="ERROR"
 
         # STEP 4b

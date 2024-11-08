@@ -11,6 +11,8 @@ import random
 
 from pydub import AudioSegment
 
+import noisereduce as nr
+
 from src.utils import load_config
 import os
 # here is the module to generate the speech wav, based on the lyrics
@@ -29,8 +31,10 @@ class Speak:
     def __init__(self,
                  config_path: str = "config.yaml",
                  language: str = "gle",  # ga
+                 denoise: bool = True,
                  use_neon: bool = True,
-                 model_path: str = None):
+                 model_path: str = None,
+                 denoise_kwargs: dict = None):
         """
         Initialize the Speak class.
 
@@ -62,6 +66,29 @@ class Speak:
 
         self.lang = language
         self.use_neon = use_neon
+        self.denoise = denoise
+        if denoise_kwargs is None:
+            # load in from config
+            self.denoise_kwargs =  self.config.get('denoise', {})
+        else:
+            if isinstance(denoise_kwargs, dict):
+                self.denoise_kwargs = denoise_kwargs
+
+    @staticmethod
+    def denoiser(x: np.ndarray,
+                sr: int=44_000,
+                n_fft: int=2048,
+                win_length: int=2048,
+                hop_length: int=512,
+                prop_decrease: float=0.8) -> np.ndarray:
+
+        reduced_noise = nr.reduce_noise(y=x,
+                                        sr=sr,
+                                        prop_decrease=prop_decrease,
+                                        n_fft=n_fft,
+                                        win_length=win_length,
+                                        hop_length=hop_length)
+        return reduced_noise
 
     def speak(self, lyrics, OutPath):
         """
@@ -74,16 +101,25 @@ class Speak:
         if (self.lang in ['ga', 'gle']) and (self.use_neon):
             wavresult = self.tts.get_audio(lyrics,  audio_format="ipython")
             wavfile.write(OutPath, rate=wavresult['rate'], data=np.array(wavresult['data']))
+            self.speaker_id = 'N/A'
         elif (self.lang in ['ga', 'gle']):
             synth = self.tts.synthesizer
             sampling_rate = synth.output_sample_rate
             # random select a singer
             singer = random.choice(self.tts.speakers)
+            self.speaker_id = singer
             irish_waveform = synth.tts(lyrics, speaker_name=singer)
             irish_waveform = np.array(irish_waveform)
             irish_waveform = np.squeeze(irish_waveform)
+            irish_waveform = np.int16(irish_waveform * 32767)
+            if self.denoise:
+                irish_waveform = self.denoiser(irish_waveform,
+                                               sr=sampling_rate,
+                                               **self.denoise_kwargs)
+
             wavfile.write(OutPath, rate=sampling_rate, data=irish_waveform)
         else:
+            self.speaker_id = 'N/A'
             self.tts.tts_to_file(
                 text=lyrics,
                 # speaker=self.tts.speakers[0],

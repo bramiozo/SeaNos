@@ -12,7 +12,17 @@ temperature: 0.5
 num_responses: 1
 model: gpt-4o-mini
 news_topic: "Ireland"
-rss_sources: 
+queries:
+  - Ireland
+  - Nature
+  - Politics
+  - Sports
+  - Entertainment
+  - Technology
+  - Economy
+  - Science
+  - Biology
+rss_sources:
   bbc:
     url: http://feeds.bbci.co.uk/news/rss.xml
     title: title
@@ -25,12 +35,21 @@ rss_sources:
     url: https://www.aljazeera.com/xml/rss/all.xml
     title: title
     description: description
+  guardian:
+    url: https://www.theguardian.com/world/rss
+    title: title
+    description: description
 tts:
   #model_path: /media/koekiemonster/DATA-FAST/TTS/tts_models/multilingual/multi-dataset/vits_ljs_irish_male/model.safetensors
   #model_path: /media/koekiemonster/DATA-FAST/TTS/tts_models/multilingual/multi-dataset/vits_vctk_irish_male/model.safetensors
   #config_path:   /media/koekiemonster/DATA-FAST/TTS/tts_models/multilingual/multi-dataset/vits_vctk_irish_male/config.json
   model_path: /media/bramiozo/DATA-FAST/TTS/tts_models/gle/tts-vits-cv-ga_seanos/withPhonemes_withSpeakerEncoder_fft4098_allSingers_seperatedByPrep/model_file.pth.tar
   config_path: /media/bramiozo/DATA-FAST/TTS/tts_models/gle/tts-vits-cv-ga_seanos/withPhonemes_withSpeakerEncoder_fft4098_allSingers_seperatedByPrep/config.json
+denoise:
+    prop_decrease: 0.8
+    n_fft: 2048
+    win_length: 2048
+    hop_length: 1024
 fallback_lyrics: "Ó, tá na haibhneacha tirim agus na foraoisí ina dtost,
 Tá anáil na talún ag éirí lag agus fuar,
 Na sléibhte ag titim, na farraigí ag ardú go hard,
